@@ -129,4 +129,14 @@ class FoodController extends Controller
         $item->delete();
         return redirect()->back()->with('message', 'The food is Deleted');
     }
+    public function listFood()
+    {
+        $cat = Category::get();
+        return view('index', compact('cat'));
+    }
+    public function view($id)
+    {
+        $food = Food::find($id);
+        return view('food.details', compact('food'));
+    }
 }
