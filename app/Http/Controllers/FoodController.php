@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Food;
 use Hamcrest\Description;
@@ -15,6 +16,8 @@ class FoodController extends Controller
      */
     public function index()
     {
+        $food = Food::latest()->paginate(15);
+        return view('food.index', compact('food'));
     }
 
     /**
@@ -75,7 +78,9 @@ class FoodController extends Controller
      */
     public function edit($id)
     {
-        //
+        $food = Food::find($id);
+        $cat = Category::find($food->categoryId);
+        return view('food.edit', compact('food', 'cat'));
     }
 
     /**
@@ -87,7 +92,29 @@ class FoodController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $this->validate($request, [
+            'name' => 'required',
+            'description' => 'required',
+            'price' => 'required|integer',
+            'category' => 'required',
+            'imgae' => 'mimes:png,jpeg,jpg'
+        ]);
+        $fod = Food::find($id);
+        $name = $fod->imgae;
+
+        if ($request->hasFile('imgae')) {
+            $imgae = $request->file('imgae');
+            $name = time() . '.' . $imgae->getClientOriginalExtension();
+            $dest = public_path('/images');
+            $imgae->move($dest, $name);
+        }
+        $fod->name = $request->get('name');
+        $fod->description = $request->get('description');
+        $fod->categoryId = $request->get('category');
+        $fod->imgae = $name;
+        $fod->price = $request->get('price');
+        $fod->save();
+        return redirect()->route('food.index')->with('message', 'The Food is updated');
     }
 
     /**
@@ -98,6 +125,8 @@ class FoodController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $item = Food::find($id);
+        $item->delete();
+        return redirect()->back()->with('message', 'The food is Deleted');
     }
 }
